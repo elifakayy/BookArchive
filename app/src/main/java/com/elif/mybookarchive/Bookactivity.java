@@ -32,15 +32,18 @@ import com.google.android.material.snackbar.Snackbar;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 
 public class Bookactivity extends AppCompatActivity {
 private ActivityBookactivityBinding binding;
+ArrayList <Book> bookArrayList;
 
     ActivityResultLauncher<Intent> activityResultLauncher; //galeriye gitmek için
     ActivityResultLauncher<String> permissionLauncher;  //izin vermek için
 
     Bitmap selectedImage;
     SQLiteDatabase database;
+
     @SuppressLint("WrongThread")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,9 +52,36 @@ private ActivityBookactivityBinding binding;
         View view = binding.getRoot();
         setContentView(view);
 
+        bookArrayList = new ArrayList<>();
+
         registerLauncher();
 
+        getData();
 
+    }
+
+    //verileri çekmek
+    private void getData()
+    {
+        try {
+            SQLiteDatabase sqLiteDatabase =this.openOrCreateDatabase("Books",MODE_PRIVATE,null);
+            Cursor cursor =sqLiteDatabase.rawQuery("SELECT* FROM arts",null);
+            int nameIx=cursor.getColumnIndex("bookname");
+            int idIx = cursor.getColumnIndex("id");
+
+            while(cursor.moveToNext())
+            {
+                String name =cursor.getString(nameIx);
+                int id =cursor.getInt(idIx);
+                Book book =new Book(name,id);
+                bookArrayList.add(book);
+
+            }
+            cursor.close();
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
 
     }
 
