@@ -8,6 +8,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteStatement;
+
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -35,6 +40,7 @@ private ActivityBookactivityBinding binding;
     ActivityResultLauncher<String> permissionLauncher;  //izin vermek için
 
     Bitmap selectedImage;
+    SQLiteDatabase database;
     @SuppressLint("WrongThread")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,13 +51,6 @@ private ActivityBookactivityBinding binding;
 
         registerLauncher();
 
-        Bitmap smallimage=makeSmallerImage(selectedImage,300);
-
-        //sqlite için ekoymak için veriye çevirmek lazım,
-        // byte dizisine çevirmek
-        ByteArrayOutputStream outputStream =new ByteArrayOutputStream();
-        smallimage.compress(Bitmap.CompressFormat.PNG,50,outputStream);
-        byte[] bytearray = outputStream.toByteArray();
 
 
     }
@@ -84,7 +83,48 @@ private ActivityBookactivityBinding binding;
         String authorName = binding.authornamept.getText().toString();
         String page = binding.numberofpagespt.getText().toString();
 
+        Bitmap smallimage=makeSmallerImage(selectedImage,300);
 
+        //sqlite için ekoymak için veriye çevirmek lazım,
+        // byte dizisine çevirmek
+        ByteArrayOutputStream outputStream =new ByteArrayOutputStream();
+        smallimage.compress(Bitmap.CompressFormat.PNG,50,outputStream);
+        byte[] bytearray = outputStream.toByteArray();
+
+        try {
+            database= this.openOrCreateDatabase("Books",MODE_PRIVATE,null);
+            database.execSQL("CREATE TABLE IF NOT EXISTS books(" +
+                    "id INTEGER PRIMARY KEY," +
+                    "bookname VARCHAR," +
+                    "authorname VARCHAR," +
+                    "pages VARCHAR," +
+                    "image BLOB )");
+
+            //values de değer yazılmıyor, sonradan çalıştırılabilecek sqlite statements çalıştırılacak
+            //sonradan çağırılabilir
+            //database.execSQL("INSERT INTO (bookname,authorname,pages,image) VALUES()");
+            String sqlString ="INSERT INTO books(bookname,authorname,pages,image) VALUES(?,?,?,?)";
+
+            //sonradan bağlama binding işlemlerini kolaylaştırmak için yapı
+            SQLiteStatement sqLiteStatement=database.compileStatement(sqlString);
+
+            sqLiteStatement.bindString(1,bookName);
+            sqLiteStatement.bindString(2,authorName);
+            sqLiteStatement.bindString(3,page);
+            sqLiteStatement.bindBlob(4,bytearray);
+            sqLiteStatement.execute();
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+
+
+        //kayıttan sonra geri dönmek
+        Intent intent=new Intent(Bookactivity.this, MainActivity.class);
+            //bundan önceki bütün aktivityleri kapat yeni açtığımı çalıştır
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        startActivity(intent);
 
 
     }
