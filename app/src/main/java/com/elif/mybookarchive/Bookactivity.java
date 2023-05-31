@@ -9,6 +9,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -24,6 +25,7 @@ import android.widget.Toast;
 import com.elif.mybookarchive.databinding.ActivityBookactivityBinding;
 import com.google.android.material.snackbar.Snackbar;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 public class Bookactivity extends AppCompatActivity {
@@ -33,6 +35,7 @@ private ActivityBookactivityBinding binding;
     ActivityResultLauncher<String> permissionLauncher;  //izin vermek için
 
     Bitmap selectedImage;
+    @SuppressLint("WrongThread")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -42,9 +45,48 @@ private ActivityBookactivityBinding binding;
 
         registerLauncher();
 
+        Bitmap smallimage=makeSmallerImage(selectedImage,300);
+
+        //sqlite için ekoymak için veriye çevirmek lazım,
+        // byte dizisine çevirmek
+        ByteArrayOutputStream outputStream =new ByteArrayOutputStream();
+        smallimage.compress(Bitmap.CompressFormat.PNG,50,outputStream);
+        byte[] bytearray = outputStream.toByteArray();
+
+
     }
 
+    public Bitmap makeSmallerImage(Bitmap image,int maxSize)
+    {
+        int height =image.getHeight();
+        int width = image.getWidth();
+
+        float bitmapRatio = (float)width/(float) height;
+        if(bitmapRatio>1)
+        {//landscape images için geçerli küçültme
+
+            width=maxSize;
+            height=(int)(width/bitmapRatio);
+
+        }else {
+            width=(int) (height/bitmapRatio);
+            height=maxSize;
+
+        }
+
+        return image.createScaledBitmap(image,width,height,true);
+    }
+
+
+
     public void save(View view) {
+        String bookName = binding.booknamept.getText().toString();
+        String authorName = binding.authornamept.getText().toString();
+        String page = binding.numberofpagespt.getText().toString();
+
+
+
+
     }
 
     public void selectImage(View view) {
