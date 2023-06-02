@@ -12,8 +12,9 @@
         android:layout_height="250dp"
         android:layout_marginTop="32dp"
         android:onClick="selectImage"
+        android:contentDescription="@string/add_book"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.497"
+
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/selectimg" />
@@ -21,13 +22,14 @@
     <EditText
         android:id="@+id/booknamept"
         android:layout_width="250dp"
-        android:layout_height="48dp"
-        android:layout_marginTop="24dp"
+        android:layout_height="55dp"
+        android:layout_marginStart="86dp"
+        android:layout_marginTop="13dp"
+        android:layout_marginBottom="16dp"
         android:ems="10"
         android:hint="Book name"
-        android:inputType="textPersonName"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.542"
+        android:inputType="text"
+        app:layout_constraintBottom_toTopOf="@+id/authornamept"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/imageView" />
 
@@ -67,4 +69,6 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/numberofpagespt" />
+
+
 </androidx.constraintlayout.widget.ConstraintLayout>

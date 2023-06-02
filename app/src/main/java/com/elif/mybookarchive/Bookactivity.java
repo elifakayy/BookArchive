@@ -19,6 +19,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.ImageDecoder;
 import android.net.Uri;
 import android.os.Build;
@@ -35,14 +36,13 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 public class Bookactivity extends AppCompatActivity {
-private ActivityBookactivityBinding binding;
-ArrayList <Book> bookArrayList;
+    private ActivityBookactivityBinding binding;
+    Bitmap selectedImage;
+    SQLiteDatabase database;
 
     ActivityResultLauncher<Intent> activityResultLauncher; //galeriye gitmek için
     ActivityResultLauncher<String> permissionLauncher;  //izin vermek için
 
-    Bitmap selectedImage;
-    SQLiteDatabase database;
 
     @SuppressLint("WrongThread")
     @Override
@@ -52,38 +52,57 @@ ArrayList <Book> bookArrayList;
         View view = binding.getRoot();
         setContentView(view);
 
-        bookArrayList = new ArrayList<>();
-
         registerLauncher();
 
-        getData();
+        database=this.openOrCreateDatabase("Books",MODE_PRIVATE,null);
 
-    }
+        Intent intent= getIntent();
+        String info = intent.getStringExtra("info");
 
-    //verileri çekmek
-    private void getData()
-    {
-        try {
-            SQLiteDatabase sqLiteDatabase =this.openOrCreateDatabase("Books",MODE_PRIVATE,null);
-            Cursor cursor =sqLiteDatabase.rawQuery("SELECT* FROM arts",null);
-            int nameIx=cursor.getColumnIndex("bookname");
-            int idIx = cursor.getColumnIndex("id");
+        if(info.equals("new"))
+        {
+            binding.booknamept.setText("");
+            binding.authornamept.setText("");
+            binding.numberofpagespt.setText("");
 
-            while(cursor.moveToNext())
-            {
-                String name =cursor.getString(nameIx);
-                int id =cursor.getInt(idIx);
-                Book book =new Book(name,id);
-                bookArrayList.add(book);
+            binding.savebutton.setVisibility(View.VISIBLE);
+            Bitmap selectImage = BitmapFactory.decodeResource(getApplicationContext().getResources(),R.drawable.selectimg);
+            binding.imageView.setImageBitmap(selectImage);
 
+        }else {
+            int bookid = intent.getIntExtra("bookid",1);
+            binding.savebutton.setVisibility(View.INVISIBLE);
+
+            try{
+
+                Cursor cursor=database.rawQuery("SELECT*FROM books WHERE id =?",new String[]{String.valueOf(bookid)});
+
+                int booknameIx =cursor.getColumnIndex("bookname");
+                int authornameIx =cursor.getColumnIndex("authorname");
+                int pagesIx =cursor.getColumnIndex("pages");
+                int imageIx =cursor.getColumnIndex("image");
+
+                while(cursor.moveToNext())
+                {
+                    binding.booknamept.setText(cursor.getString(booknameIx));
+                    binding.authornamept.setText(cursor.getString(authornameIx));
+                    binding.numberofpagespt.setText(cursor.getString(pagesIx));
+
+                    byte[] bytes = cursor.getBlob(imageIx);
+                    Bitmap bitmap= BitmapFactory.decodeByteArray(bytes,0,bytes.length);
+
+                    binding.imageView.setImageBitmap(bitmap);
+                }
+                cursor.close();
+
+            }catch (Exception e){
+                e.printStackTrace();
             }
-            cursor.close();
-
-        }catch (Exception e){
-            e.printStackTrace();
         }
 
     }
+
+
 
     public Bitmap makeSmallerImage(Bitmap image,int maxSize)
     {
@@ -103,7 +122,7 @@ ArrayList <Book> bookArrayList;
 
         }
 
-        return image.createScaledBitmap(image,width,height,true);
+        return Bitmap.createScaledBitmap(image,width,height,true);
     }
 
 
